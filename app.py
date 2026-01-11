@@ -47,17 +47,17 @@ GEMINI_MODEL = "gemini-2.5-flash"  # Hoặc "gemini-1.5-pro"
 
 @st.cache_resource
 def get_embedding_function():
-    EMBEDDING_MODEL = "BAAI/bge-m3"  # Model embedding tiếng Việt
-    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
-    return embedding_function
+    EMBEDDING_MODEL = "BAAI/bge-m3"  # PHẢI giống model lúc ingest
+    return embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name=EMBEDDING_MODEL
+    )
+
 
 @st.cache_resource
 def load_collection():
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
-    embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
-    )
+    embedding_func = get_embedding_function()  # DÙNG CHUNG 1 EMBEDDING
 
     collection = chroma_client.get_or_create_collection(
         name="tthc_collection",
@@ -66,22 +66,33 @@ def load_collection():
 
     return collection
 
+
 # --- Load collection 1 lần ---
 collection = load_collection()
 
-def query_rag(query: str, chat_history: list, top_k: int):
-    # Retrieval với top_k động
+
+def query_rag(query: str, top_k: int = 5):
     results = collection.query(
         query_texts=[query],
         n_results=top_k,
-        include=["documents", "metadatas", "distances"]
+        include=["documents", "metadatas"]
     )
+
+    # Không có kết quả
+    if not results["documents"] or not results["documents"][0]:
+        return ""
 
     context_parts = []
     for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
-        context_parts.append(f"[{meta['hierarchy']}]\\n{doc}\\n(Nguồn: {meta['url']})")
+        hierarchy = meta.get("hierarchy", "TTHC")
+        url = meta.get("url", "Không rõ nguồn")
+        context_parts.append(
+            f"[{hierarchy}]\n{doc}\n(Nguồn: {url})"
+        )
 
-    context = "\\n\\n".join(context_parts)
+    return "\n\n".join(context_parts)
+
+ 
 
     prompt = f"""
 Bạn là trợ lý tư vấn thủ tục hành chính công của Việt Nam.
