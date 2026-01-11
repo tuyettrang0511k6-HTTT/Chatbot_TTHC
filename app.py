@@ -6,8 +6,8 @@ import chromadb
 from chromadb.utils import embedding_functions
 from sentence_transformers import SentenceTransformer
 
-# Khởi tạo Gemini client (API key lấy từ Streamlit Secrets)
-client = genai.Client(api_key=st.secrets["AIzaSyAfFwFRRwAINl-xgXW6vgyO3baR0d1WikA"])
+client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
+
 
 
 # ================== CẤU HÌNH ==================
