@@ -1,16 +1,14 @@
-import google.generativeai as genai
-genai.configure(api_key="AIzaSyAfFwFRRwAINl-xgXW6vgyO3baR0d1WikA")
-
 import streamlit as st
+from google import genai
 import json
 import os
 import chromadb
 from chromadb.utils import embedding_functions
 from sentence_transformers import SentenceTransformer
-import google.generativeai as genai
 
-# Configure Gemini API key (thay bằng key thật của bạn từ Google AI Studio)
-genai.configure(api_key="AIzaSyAfFwFRRwAINl-xgXW6vgyO3baR0d1WikA")
+# Khởi tạo Gemini client (API key lấy từ Streamlit Secrets)
+client = genai.Client(api_key=st.secrets["AIzaSyAfFwFRRwAINl-xgXW6vgyO3baR0d1WikA"])
+
 
 # ================== CẤU HÌNH ==================
 JSON_FILE = "/content/drive/RAG/all_procedures_normalized.json"  # Đường dẫn file JSON (sau chunk rule-based)
