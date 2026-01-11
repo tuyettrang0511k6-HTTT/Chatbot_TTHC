@@ -37,19 +37,18 @@ def get_embedding_function():
 @st.cache_resource
 def load_collection():
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-    embedding_func = get_embedding_function()
 
-    try:
-        collection = chroma_client.get_collection(
-            name=COLLECTION_NAME,
-            embedding_function=embedding_func  # cần để query đúng
-        )
-        #st.success(f"Collection '{COLLECTION_NAME}' đã load từ {CHROMA_DB_PATH}")
-    except Exception as e:
-        st.error(f"Không tìm thấy collection '{COLLECTION_NAME}' trong {CHROMA_DB_PATH}: {e}")
-        collection = None
+    embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2"
+    )
+
+    collection = chroma_client.get_or_create_collection(
+        name="tthc_collection",
+        embedding_function=embedding_func
+    )
 
     return collection
+
 # --- Load collection 1 lần ---
 collection = load_collection()
 
