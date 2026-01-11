@@ -41,40 +41,31 @@ COLLECTION_NAME = "dichvucong_rag"
 GEMINI_MODEL = "gemini-2.5-flash"  # Hoặc "gemini-1.5-pro"
 
 @st.cache_resource
-def load_collection():
-    # 1. Khởi tạo Chroma client (không dùng PersistentClient cho Streamlit Cloud)
-    client = chromadb.Client()
+def get_embedding_function():
+    EMBEDDING_MODEL = "BAAI/bge-m3"  # Model embedding tiếng Việt
+    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+    return embedding_function
 
-    # 2. DÙNG 1 embedding DUY NHẤT (phải giống lúc ingest & query)
+@st.cache_resource
+def load_collection():
+    chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+
     embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="BAAI/bge-m3"
+        model_name="all-MiniLM-L6-v2"
     )
 
-    # 3. Tạo / load collection
-    collection = client.get_or_create_collection(
+    collection = chroma_client.get_or_create_collection(
         name="tthc_collection",
         embedding_function=embedding_func
     )
 
-    # 4. INGEST CHỈ 1 LẦN
-    if collection.count() == 0:
-        docs, metas, ids = load_and_chunk_data()  # <-- HÀM CỦA BẠN
-
-        collection.add(
-            documents=docs,     # list[str]
-            metadatas=metas,    # list[dict]
-            ids=ids             # list[str]
-        )
-
     return collection
 
-
-# ================== LOAD COLLECTION ==================
+# --- Load collection 1 lần ---
 collection = load_collection()
 
-
-# ================== QUERY RAG ==================
 def query_rag(query: str, chat_history: list, top_k: int):
+    # Retrieval với top_k động
     results = collection.query(
         query_texts=[query],
         n_results=top_k,
@@ -83,14 +74,9 @@ def query_rag(query: str, chat_history: list, top_k: int):
 
     context_parts = []
     for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
-        context_parts.append(
-            f"[{meta.get('hierarchy', 'N/A')}]\n"
-            f"{doc}\n"
-            f"(Nguồn: {meta.get('url', 'N/A')})"
-        )
+        context_parts.append(f"[{meta['hierarchy']}]\\n{doc}\\n(Nguồn: {meta['url']})")
 
-    context = "\n\n".join(context_parts)
-    return context
+    context = "\\n\\n".join(context_parts)
 
     prompt = f"""
 Bạn là trợ lý tư vấn thủ tục hành chính công của Việt Nam.
