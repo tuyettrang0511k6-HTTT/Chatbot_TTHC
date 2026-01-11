@@ -82,7 +82,6 @@ def query_rag(query: str, chat_history: list, top_k: int):
         context_parts.append(f"[{meta['hierarchy']}]\\n{doc}\\n(Nguồn: {meta['url']})")
 
     context = "\\n\\n".join(context_parts)
- 
 
     prompt = f"""
 Bạn là trợ lý tư vấn thủ tục hành chính công của Việt Nam.
