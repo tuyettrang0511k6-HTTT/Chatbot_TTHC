@@ -1,3 +1,6 @@
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import streamlit as st
 import os
@@ -6,6 +9,8 @@ import json
 import chromadb
 from chromadb.utils import embedding_functions
 from sentence_transformers import SentenceTransformer
+
+from google import genai
 
 # ====== CẤU HÌNH ======
 CHROMA_DB_PATH = "./chroma_db"
