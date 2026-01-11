@@ -1,21 +1,23 @@
 import streamlit as st
 import os
+import json
+
+import chromadb
+from chromadb.utils import embedding_functions
+from sentence_transformers import SentenceTransformer
+
 from google import genai
 
-# Lấy API key từ Secrets hoặc biến môi trường
-GOOGLE_API_KEY = None
+# ====== CẤU HÌNH ======
+CHROMA_DB_PATH = "./chroma_db"
 
-if hasattr(st, "secrets") and "GOOGLE_API_KEY" in st.secrets:
-    GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-else:
-    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-if not GOOGLE_API_KEY:
-    st.error("❌ Chưa cấu hình GOOGLE_API_KEY")
+# ====== KIỂM TRA API KEY ======
+if "GOOGLE_API_KEY" not in st.secrets:
+    st.error("❌ Chưa cấu hình GOOGLE_API_KEY trong Streamlit Secrets")
     st.stop()
 
-# Khởi tạo Gemini client
-client = genai.Client(api_key=GOOGLE_API_KEY)
+# ====== KHỞI TẠO GEMINI CLIENT ======
+client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
 
 
