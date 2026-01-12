@@ -43,7 +43,7 @@ GEMINI_MODEL = "gemini-2.5-flash"  # Hoặc "gemini-1.5-pro"
 @st.cache_resource
 def get_embedding_function():
     EMBEDDING_MODEL = "BAAI/bge-m3"  # Model embedding tiếng Việt
-    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="BAAI/bge-m3")
     return embedding_function
 
 @st.cache_resource
@@ -51,11 +51,11 @@ def load_collection():
     chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
     embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
+        model_name="BAAI/bge-m3"
     )
 
     collection = chroma_client.get_or_create_collection(
-        name="tthc_collection",
+        name=COLLECTION_NAME,
         embedding_function=embedding_func
     )
 
@@ -63,6 +63,7 @@ def load_collection():
 
 # --- Load collection 1 lần ---
 collection = load_collection()
+
 
 def query_rag(query: str, chat_history: list, top_k: int):
     # Retrieval với top_k động
